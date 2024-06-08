@@ -12,14 +12,14 @@ class OrderLine extends Model
     protected $fillable = [
         'order_id',
         'product_id',
-        'product_price',
+        'product_price_in_piasters',
         'quantity',
     ];
 
     protected $casts = [
         'order_id' => 'integer',
         'product_id' => 'integer',
-        'product_price_in_cents' => 'integer',
+        'product_price_in_piasters' => 'integer',
         'quantity' => 'integer',
     ];
 }

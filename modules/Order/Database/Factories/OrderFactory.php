@@ -17,7 +17,7 @@ class OrderFactory extends Factory
 
         return [
             'user_id' => 1,
-            'total_in_cents' => rand(1,500),
+            'total_in_piasters' => rand(1,500),
             'payment_gateway' => 'paypal',
             'status' => 'pending',
             'payment_id' => rand(1,500),
