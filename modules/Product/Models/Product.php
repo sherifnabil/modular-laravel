@@ -10,7 +10,6 @@ class Product extends Model
 {
     use HasFactory;
 
-
     protected static function newFactory(): ProductFactory
     {
         return ProductFactory::new();

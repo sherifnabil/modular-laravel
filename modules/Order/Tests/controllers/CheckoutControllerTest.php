@@ -35,8 +35,8 @@ class CheckoutControllerTest extends TestCase
             'products' => [
                 ['id' =>  $products->first()->id, 'quantity' => 1],
                 ['id' =>  $products->last()->id, 'quantity' => 1],
-            ],
-        ]);
+                ],
+            ]);
 
         $response->assertStatus(201);
 
@@ -50,6 +50,10 @@ class CheckoutControllerTest extends TestCase
 
         $this->assertCount(2, $order->lines);
 
+
+        $products = $products->fresh();
+        $this->assertEquals(9, $products->first()->stock);
+        $this->assertEquals(9, $products->last()->stock);
 
         foreach ($products as $product) {
             $orderLine = $order->lines->where('product_id', $product->id)->first();

@@ -7,23 +7,22 @@ use Illuminate\Validation\ValidationException;
 use Modules\Order\Http\Requests\CheckoutRequest;
 use Modules\Order\Models\Order;
 use Modules\Paymennt\PayBuddy;
+use Modules\Product\CartItem;
+use Modules\Product\CartItemCollection;
 use Modules\Product\Models\Product;
+use Modules\Product\Warehouse\ProductStockManger;
 
 class CheckoutController
 {
+    public function __construct(
+        protected ProductStockManger $productStockManger
+    ) {
+    }
+
     public function __invoke(CheckoutRequest $request)
     {
-        $products = collect($request->input('products'))->map(function ($productDetails) {
-            return [
-                'product' => Product::find($productDetails['id']),
-                'quantity' => $productDetails['quantity']
-            ];
-        });
-
-        $orderTotalInPiasters = $products->sum(
-            fn ($productDetails) =>
-            $productDetails['quantity'] * $productDetails['product']['price']
-        );
+        $cartItems = CartItemCollection::fromCheckoutData($request->input('products'));
+        $orderTotalInPiasters = $cartItems->totalInPiasters();
 
         $payBuddy = PayBuddy::make();
 
@@ -43,11 +42,13 @@ class CheckoutController
             'payment_gateway'   =>  'PayBuddy',
         ]);
 
-        foreach ($products as $product) {
+        foreach ($cartItems->items() as $cartItem) {
+            $this->productStockManger->decrement($cartItem->product->id, $cartItem->quantity);
+
             $order->lines()->create([
-                'product_id' => $product['product']['id'],
-                'product_price_in_piasters' => $product['product']['price'],
-                'quantity' => $product['quantity'],
+                'product_id' => $cartItem->product->id,
+                'product_price_in_piasters' => $cartItem->product->priceInPiasters,
+                'quantity' => $cartItem->quantity,
             ]);
         }
 
