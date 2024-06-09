@@ -52,4 +52,9 @@ class Order extends Model
     {
         return $this->payments()->latest()->first();
     }
+
+    public function url(): string
+    {
+        return route('order::order.show', $this->id);
+    }
 }
