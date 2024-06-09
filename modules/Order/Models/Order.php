@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Order\Database\Factories\OrderFactory;
+use Modules\Payment\Payment;
 
 class Order extends Model
 {
@@ -32,13 +33,23 @@ class Order extends Model
         return OrderFactory::new();
     }
 
-    public function user() : BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function lines() : HasMany
+    public function lines(): HasMany
     {
         return $this->hasMany(OrderLine::class, 'order_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function lastPayment()
+    {
+        return $this->payments()->latest()->first();
     }
 }

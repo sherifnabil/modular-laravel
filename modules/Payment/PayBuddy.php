@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Paymennt;
+namespace Modules\Payment;
 
 use NumberFormatter;
 use Illuminate\Support\Str;

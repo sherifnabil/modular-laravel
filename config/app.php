@@ -171,6 +171,7 @@ return [
         Modules\Order\ServiceProviders\OrderServiceProvider::class,
         Modules\Product\ServiceProviders\ProductServiceProvider::class,
         Modules\Shipment\ServiceProviders\ShipmentServiceProvider::class,
+        Modules\Payment\Infrastructure\Providers\PaymentProvider::class,
     ])->toArray(),
 
     /*

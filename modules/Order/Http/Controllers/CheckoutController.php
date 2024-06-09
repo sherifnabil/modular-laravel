@@ -2,14 +2,12 @@
 
 namespace Modules\Order\Http\Controllers;
 
+use Modules\Payment\PayBuddy;
+use Modules\Order\Models\Order;
 use Illuminate\Http\JsonResponse;
+use Modules\Product\CartItemCollection;
 use Illuminate\Validation\ValidationException;
 use Modules\Order\Http\Requests\CheckoutRequest;
-use Modules\Order\Models\Order;
-use Modules\Paymennt\PayBuddy;
-use Modules\Product\CartItem;
-use Modules\Product\CartItemCollection;
-use Modules\Product\Models\Product;
 use Modules\Product\Warehouse\ProductStockManger;
 
 class CheckoutController
@@ -38,7 +36,7 @@ class CheckoutController
             'user_id' => $request->user()->id,
             'total_in_piasters' => $orderTotalInPiasters,
             'payment_id' => $charge['id'],
-            'status'    =>  'paid',
+            'status'    =>  'completed',
             'payment_gateway'   =>  'PayBuddy',
         ]);
 
@@ -51,6 +49,14 @@ class CheckoutController
                 'quantity' => $cartItem->quantity,
             ]);
         }
+
+        $order->payments()->create([
+            'payment_id' => $charge['id'],
+            'total_in_piasters' => $orderTotalInPiasters,
+            'status' => 'paid',
+            'payment_gateway' => 'PayBuddy',
+            'user_id' => $request->user()->id,
+        ]);
 
         return new JsonResponse([], 201);
     }

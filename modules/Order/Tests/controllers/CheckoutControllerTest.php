@@ -7,7 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Order\Models\Order;
-use Modules\Paymennt\PayBuddy;
+use Modules\Payment\PayBuddy;
 use Modules\Product\Database\Factories\ProductFactory;
 use Tests\TestCase;
 
@@ -35,18 +35,25 @@ class CheckoutControllerTest extends TestCase
             'products' => [
                 ['id' =>  $products->first()->id, 'quantity' => 1],
                 ['id' =>  $products->last()->id, 'quantity' => 1],
-                ],
-            ]);
+            ],
+        ]);
 
         $response->assertStatus(201);
 
         $order = Order::query()->latest('id')->first();
-        // dd('success');
+
+        // order
         $this->assertTrue($order->user->is($user));
         $this->assertEquals(60000, $order->total_in_piasters);
-        $this->assertEquals('paid', $order->status);
-        $this->assertEquals('PayBuddy', $order->payment_gateway);
-        $this->assertEquals(36, strlen($order->payment_id));
+        $this->assertEquals('completed', $order->status);
+
+
+        $payment = $order->lastPayment();
+        $this->assertEquals('paid', $payment->status);
+        $this->assertEquals('PayBuddy', $payment->payment_gateway);
+        $this->assertEquals(36, strlen($payment->payment_id));
+        $this->assertEquals(60000, $payment->total_in_piasters);
+        $this->assertTrue($order->user->is($user));
 
         $this->assertCount(2, $order->lines);
 
