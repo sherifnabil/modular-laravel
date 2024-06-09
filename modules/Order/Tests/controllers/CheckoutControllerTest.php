@@ -90,5 +90,7 @@ class CheckoutControllerTest extends TestCase
 
         $response->assertStatus(422)
         ->assertJsonValidationErrors(['payment_token']);
+
+        $this->assertCount(0, Order::query()->get());
     }
 }

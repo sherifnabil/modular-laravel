@@ -17,6 +17,7 @@ class Payment extends Model
         'total_in_piasters',
         'status',
         'payment_gateway',
+        'order_id',
         'user_id',
     ];
 
