@@ -25,30 +25,18 @@ class PurchaseItems
     {
 
         return $this->databaseManager->transaction(function () use ($cartItemCollection, $paymeentProvider, $paymentToken, $userId){
-
-            $orderTotalInPiasters = $cartItemCollection->totalInPiasters();
-
-            $order = Order::create([
-                'user_id' => $userId,
-                'total_in_piasters' => $orderTotalInPiasters,
-                'status'    =>  'completed',
-                'payment_gateway'   =>  'PayBuddy',
-            ]);
+            $order = Order::startForUser($userId);
+            $order->addLinesFromCartItems($cartItemCollection);
+            $order->fullfill();
 
             foreach ($cartItemCollection->items() as $cartItem) {
                 $this->productStockManger->decrement($cartItem->product->id, $cartItem->quantity);
-
-                $order->lines()->create([
-                    'product_id' => $cartItem->product->id,
-                    'product_price_in_piasters' => $cartItem->product->priceInPiasters,
-                    'quantity' => $cartItem->quantity,
-                ]);
             }
 
             $payment = $this->createPaymentForOrder->handle(
                 $order->id,
                 $userId,
-                $orderTotalInPiasters,
+                $cartItemCollection->totalInPiasters(),
                 $paymeentProvider,
                 $paymentToken,
             );
