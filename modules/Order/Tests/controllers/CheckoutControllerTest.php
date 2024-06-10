@@ -6,6 +6,8 @@ use App\Models\User;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Mail;
+use Modules\Order\Mail\OrderReceived;
 use Modules\Order\Models\Order;
 use Modules\Payment\PayBuddy;
 use Modules\Product\Database\Factories\ProductFactory;
@@ -18,6 +20,7 @@ class CheckoutControllerTest extends TestCase
 
     public function test_it_successfully_creates_an_order(): void
     {
+        Mail::fake();
         $user = User::factory()->create();
 
         $products = ProductFactory::new()->count(2)->create(
@@ -46,6 +49,9 @@ class CheckoutControllerTest extends TestCase
         ])
         ->assertStatus(201);
 
+        Mail::assertSent(OrderReceived::class, function(OrderReceived $mail) use ($user){
+            return $mail->hasTo($user->email);
+        });
 
         // order
         $this->assertTrue($order->user->is($user));

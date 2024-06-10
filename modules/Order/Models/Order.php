@@ -106,4 +106,9 @@ class Order extends Model
         $this->save();
         $this->lines()->saveMany($this->lines);
     }
+
+    public function localizedTotal(): int
+    {
+        return $this->total_in_piasters;
+    }
 }

@@ -3,35 +3,29 @@
 namespace Modules\Order\Actions;
 
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Validation\ValidationException;
-use Modules\Order\Exceptions\PaymentFailedException;
-use Modules\Order\Http\Requests\CheckoutRequest;
+use Illuminate\Events\Dispatcher;
+use Modules\Order\Events\OrderFullFilled;
+use Modules\Order\Mail\OrderReceived;
 use Modules\Order\Models\Order;
 use Modules\Payment\Actions\CreatePaymentForOrder;
 use Modules\Payment\PayBuddy;
 use Modules\Product\CartItemCollection;
-use Modules\Product\Warehouse\ProductStockManger;
 
 class PurchaseItems
 {
     public function __construct(
-        protected ProductStockManger $productStockManger,
         protected CreatePaymentForOrder $createPaymentForOrder,
-        protected DatabaseManager $databaseManager
+        protected DatabaseManager $databaseManager,
+        protected Dispatcher $events
     ) {
     }
 
-    public function handle(CartItemCollection $cartItemCollection, PayBuddy $paymeentProvider, string $paymentToken, int $userId): Order
+    public function handle(CartItemCollection $cartItemCollection, PayBuddy $paymeentProvider, string $paymentToken, int $userId, string $userEmail): Order
     {
-
-        return $this->databaseManager->transaction(function () use ($cartItemCollection, $paymeentProvider, $paymentToken, $userId){
+        return $this->databaseManager->transaction(function () use ($cartItemCollection, $paymeentProvider, $paymentToken, $userId, $userEmail) {
             $order = Order::startForUser($userId);
             $order->addLinesFromCartItems($cartItemCollection);
             $order->fullfill();
-
-            foreach ($cartItemCollection->items() as $cartItem) {
-                $this->productStockManger->decrement($cartItem->product->id, $cartItem->quantity);
-            }
 
             $payment = $this->createPaymentForOrder->handle(
                 $order->id,
@@ -40,6 +34,15 @@ class PurchaseItems
                 $paymeentProvider,
                 $paymentToken,
             );
+
+            $this->events->dispatch(new OrderFullFilled(
+                $order->id,
+                $order->total_in_piasters,
+                $userId,
+                $userEmail,
+                $payment->total_in_piasters,
+                $cartItemCollection,
+            ));
 
             return $order;
         });

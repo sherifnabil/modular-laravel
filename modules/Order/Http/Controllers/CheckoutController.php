@@ -3,7 +3,6 @@
 namespace Modules\Order\Http\Controllers;
 
 use Modules\Payment\PayBuddy;
-use Modules\Order\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Modules\Product\CartItemCollection;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +25,8 @@ class CheckoutController
                 cartItemCollection: $cartItems,
                 paymeentProvider: PayBuddy::make(),
                 paymentToken: $request->input('payment_token'),
-                userId: $request->user()->id
+                userId: $request->user()->id,
+                userEmail: $request->user()->email
             );
         } catch (PaymentFailedException) {
             throw ValidationException::withMessages([
