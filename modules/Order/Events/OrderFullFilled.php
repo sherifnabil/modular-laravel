@@ -2,19 +2,15 @@
 
 namespace Modules\Order\Events;
 
+use Modules\Order\DTOs\OrderDto;
+use Modules\Order\DTOs\UserDto;
 use Modules\Product\CartItemCollection;
 
 readonly class OrderFullFilled
 {
-
     public function __construct(
-        public int $orderId,
-        public int $totalInPiasters,
-        public int $userId,
-        public string $userEmail,
-        public string $localizedTotal,
-        public CartItemCollection $cartItems,
+        public OrderDto $order,
+        public UserDto $user,
     ) {
-
     }
 }

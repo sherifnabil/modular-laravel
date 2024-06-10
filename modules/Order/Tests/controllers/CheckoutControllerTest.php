@@ -42,7 +42,7 @@ class CheckoutControllerTest extends TestCase
         ]);
 
         $order = Order::query()->latest('id')->first();
-
+        // dd($order->url());
         $response
         ->assertJson([
             'order_url' => $order->url(),

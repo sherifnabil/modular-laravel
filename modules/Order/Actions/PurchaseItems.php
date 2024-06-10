@@ -4,11 +4,12 @@ namespace Modules\Order\Actions;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Events\Dispatcher;
+use Modules\Order\DTOs\OrderDto;
+use Modules\Order\DTOs\PendingPayment;
+use Modules\Order\DTOs\UserDto;
 use Modules\Order\Events\OrderFullFilled;
-use Modules\Order\Mail\OrderReceived;
 use Modules\Order\Models\Order;
 use Modules\Payment\Actions\CreatePaymentForOrder;
-use Modules\Payment\PayBuddy;
 use Modules\Product\CartItemCollection;
 
 class PurchaseItems
@@ -20,31 +21,26 @@ class PurchaseItems
     ) {
     }
 
-    public function handle(CartItemCollection $cartItemCollection, PayBuddy $paymeentProvider, string $paymentToken, int $userId, string $userEmail): Order
+    public function handle(CartItemCollection $cartItemCollection, PendingPayment $pendingPayment, UserDto $user): OrderDto
     {
-        return $this->databaseManager->transaction(function () use ($cartItemCollection, $paymeentProvider, $paymentToken, $userId, $userEmail) {
-            $order = Order::startForUser($userId);
+        $order = $this->databaseManager->transaction(function () use ($cartItemCollection, $pendingPayment, $user) {
+            $order = Order::startForUser($user->id);
             $order->addLinesFromCartItems($cartItemCollection);
             $order->fullfill();
 
             $payment = $this->createPaymentForOrder->handle(
                 $order->id,
-                $userId,
+                $user->id,
                 $cartItemCollection->totalInPiasters(),
-                $paymeentProvider,
-                $paymentToken,
+                $pendingPayment->provider,
+                $pendingPayment->paymentToken,
             );
 
-            $this->events->dispatch(new OrderFullFilled(
-                $order->id,
-                $order->total_in_piasters,
-                $userId,
-                $userEmail,
-                $payment->total_in_piasters,
-                $cartItemCollection,
-            ));
-
-            return $order;
+            return OrderDto::fromEloquentModel($order);
         });
+
+        $this->events->dispatch(new OrderFullFilled($order, $user));
+
+        return $order;
     }
 }

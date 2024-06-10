@@ -7,6 +7,8 @@ use Illuminate\Http\JsonResponse;
 use Modules\Product\CartItemCollection;
 use Illuminate\Validation\ValidationException;
 use Modules\Order\Actions\PurchaseItems;
+use Modules\Order\DTOs\PendingPayment;
+use Modules\Order\DTOs\UserDto;
 use Modules\Order\Exceptions\PaymentFailedException;
 use Modules\Order\Http\Requests\CheckoutRequest;
 class CheckoutController
@@ -20,13 +22,14 @@ class CheckoutController
     {
         $cartItems = CartItemCollection::fromCheckoutData($request->input('products'));
 
+        $pendingPayment = new PendingPayment(PayBuddy::make(), $request->input('payment_token'));
+        $userDto = UserDto::fromEloquentModel($request->user());
+
         try {
             $order = $this->purchaseItems->handle(
                 cartItemCollection: $cartItems,
-                paymeentProvider: PayBuddy::make(),
-                paymentToken: $request->input('payment_token'),
-                userId: $request->user()->id,
-                userEmail: $request->user()->email
+                pendingPayment: $pendingPayment,
+                user: $userDto,
             );
         } catch (PaymentFailedException) {
             throw ValidationException::withMessages([
@@ -35,7 +38,7 @@ class CheckoutController
         }
 
         return new JsonResponse([
-            'order_url' => $order->url(),
+            'order_url' => $order->url,
         ], 201);
     }
 }
