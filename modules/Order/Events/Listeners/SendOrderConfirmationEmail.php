@@ -8,7 +8,6 @@ use Modules\Order\Mail\OrderReceived;
 
 class SendOrderConfirmationEmail
 {
-
     public function handle(OrderFullFilled $event): void
     {
         Mail::to($event->userEmail)->send(new OrderReceived($event->localizedTotal));
