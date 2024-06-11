@@ -2,17 +2,17 @@
 
 namespace Modules\Order\Tests\controllers;
 
-use App\Models\User;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\Sequence;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Mail;
-use Modules\Order\Mail\OrderReceived;
-use Modules\Order\Models\Order;
-use Modules\Payment\PayBuddySdk;
-use Modules\Payment\PaymentProvider;;
-use Modules\Product\Database\Factories\ProductFactory;
 use Tests\TestCase;
+use App\Models\User;
+use Modules\Order\Order;
+use Modules\Payment\PayBuddySdk;
+use Database\Factories\UserFactory;
+use Illuminate\Support\Facades\Mail;
+use Modules\Payment\PaymentProvider;;
+use Modules\Order\Checkout\OrderReceived;
+use Illuminate\Database\Eloquent\Factories\Sequence;
+use Modules\Product\database\factories\ProductFactory;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class CheckoutControllerTest extends TestCase
 {
