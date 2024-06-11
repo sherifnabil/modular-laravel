@@ -18,7 +18,6 @@ class CheckoutControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-
     public function test_it_successfully_creates_an_order(): void
     {
         $this->withoutExceptionHandling();
