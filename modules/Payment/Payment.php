@@ -21,6 +21,10 @@ class Payment extends Model
         'user_id',
     ];
 
+    protected $casts = [
+        'payment_gateway'   => PaymentProvider::class,
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

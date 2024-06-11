@@ -9,7 +9,8 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Mail;
 use Modules\Order\Mail\OrderReceived;
 use Modules\Order\Models\Order;
-use Modules\Payment\PayBuddy;
+use Modules\Payment\PayBuddySdk;
+use Modules\Payment\PaymentProvider;;
 use Modules\Product\Database\Factories\ProductFactory;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class CheckoutControllerTest extends TestCase
 
     public function test_it_successfully_creates_an_order(): void
     {
+        $this->withoutExceptionHandling();
         Mail::fake();
         $user = User::factory()->create();
 
@@ -30,7 +32,7 @@ class CheckoutControllerTest extends TestCase
             )
         );
 
-        $token = PayBuddy::validToken();
+        $token = PayBuddySdk::validToken();
 
         $response = $this->actingAs($user)
         ->post(route('order::order.checkout'), [
@@ -61,7 +63,7 @@ class CheckoutControllerTest extends TestCase
 
         $payment = $order->lastPayment();
         $this->assertEquals('paid', $payment->status);
-        $this->assertEquals('PayBuddy', $payment->payment_gateway);
+        $this->assertEquals(PaymentProvider::PayBuddy, $payment->payment_gateway);
         $this->assertEquals(36, strlen($payment->payment_id));
         $this->assertEquals(60000, $payment->total_in_piasters);
         $this->assertTrue($order->user->is($user));
@@ -84,7 +86,7 @@ class CheckoutControllerTest extends TestCase
     {
         $user  =  UserFactory::new()->create();
         $product  =  ProductFactory::new()->create();
-        $token  =  PayBuddy::invalidToken();
+        $token  =  PayBuddySdk::invalidToken();
 
          $response = $this->actingAs($user)
         ->postJson(route('order::order.checkout'), [

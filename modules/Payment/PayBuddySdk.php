@@ -6,9 +6,9 @@ use NumberFormatter;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-class PayBuddy
+final class PayBuddySdk
 {
-    public function charge(string $token, int $amountInCents, string $statementDescription): array
+    public function charge(string $token, int $amountInPiasters, string $statementDescription): array
     {
         $this->validateToken($token);
 
@@ -16,8 +16,8 @@ class PayBuddy
 
         return [
             'id' => Str::uuid(),
-            'amount_in_piasters' => $amountInCents,
-            'localized_amount' => $numberFormatter->format($amountInCents / 100),
+            'amount_in_piasters' => $amountInPiasters,
+            'localized_amount' => $numberFormatter->format($amountInPiasters / 100),
             'statement_description' => $statementDescription,
             'created_at' => now()->toDateTimeString()
         ];

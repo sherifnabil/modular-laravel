@@ -2,10 +2,11 @@
 
 namespace Modules\Payment\Actions;
 
-use Modules\Order\Exceptions\PaymentFailedException;
-use Modules\Order\Models\Order;
-use Modules\Payment\PayBuddy;
+use RuntimeException;
 use Modules\Payment\Payment;
+use Modules\Payment\PaymentDetails;
+use Modules\Payment\PaymentGateway;
+use Modules\Payment\Exceptions\PaymentFailedException;
 
 class CreatePaymentForOrder
 {
@@ -16,22 +17,24 @@ class CreatePaymentForOrder
         int $orderId,
         int $userId,
         int $totalInPiasters,
-        PayBuddy $payBuddy,
+        PaymentGateway $paymentGateway,
         string $paymentToken
     ): Payment
     {
-        try {
-            $charge = $payBuddy->charge($paymentToken, $totalInPiasters, 'pay shopping');
-        } catch (\Throwable $th) {
-            throw PaymentFailedException::dueToInvalidToken();
-        }
+        $charge = $paymentGateway->charge(
+            new PaymentDetails(
+                $paymentToken,
+                $totalInPiasters,
+                'some Description',
+            )
+        );
 
         return Payment::create([
             'order_id' => $orderId,
-            'payment_id' => $charge['id'],
+            'payment_id' => $charge->id,
             'total_in_piasters' => $totalInPiasters,
             'status' => 'paid',
-            'payment_gateway' => 'PayBuddy',
+            'payment_gateway' => $charge->paymentProvider,
             'user_id' => $userId,
         ]);
 
