@@ -32,6 +32,10 @@ class CartItemCollection
         );
     }
 
+    public function fromProduct(ProductDto $productDto)
+    {
+    }
+
     /**
      *
      * @return Collection <CartItem>

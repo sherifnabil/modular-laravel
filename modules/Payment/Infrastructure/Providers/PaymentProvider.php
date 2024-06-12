@@ -14,5 +14,6 @@ class PaymentProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->app->bind(PaymentGateway::class, fn() => new PayBuddyGateway(new PayBuddySdk()));
 
+        $this->app->register(EventServiceProvider::class);
     }
 }

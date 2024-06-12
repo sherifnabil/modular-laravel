@@ -2,16 +2,15 @@
 
 namespace Modules\Order\Checkout;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Order\Checkout\Contracts\UserDto;
 use Modules\Order\Checkout\Contracts\OrderDto;
-use Modules\Order\Checkout\Contracts\PendingPayment;
 
-readonly class OrderFullFilled
+readonly class MarkOrderAsFailed implements ShouldQueue
 {
     public function __construct(
         public OrderDto $order,
         public UserDto $user,
-        public PendingPayment $pendingPayment,
     ) {
     }
 }

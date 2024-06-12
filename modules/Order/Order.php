@@ -12,6 +12,7 @@ use Modules\Order\OrderMissiongOrderLinesException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Order\Infrastructure\database\factories\OrderFactory;
+use RuntimeException;
 
 class Order extends Model
 {
@@ -33,6 +34,7 @@ class Order extends Model
 
     public const PENDING = 'pending';
     public const COMPLETED = 'completed';
+    public const PAYMENT_FAILED = 'failed';
 
     protected static function newFactory(): OrderFactory
     {
@@ -100,7 +102,7 @@ class Order extends Model
     public function fullfill(): void
     {
         if($this->lines->isEmpty()) {
-            throw new OrderMissiongOrderLinesException();
+            throw new OrderMissingOrderLinesException();
         }
 
         $this->status = self::COMPLETED;
@@ -111,5 +113,38 @@ class Order extends Model
     public function localizedTotal(): int
     {
         return $this->total_in_piasters;
+    }
+
+    public function start(): void
+    {
+        if ($this->lines->isEmpty()) {
+            throw new OrderMissingOrderLinesException();
+        }
+
+        $this->status = self::PENDING;
+
+        $this->save();
+        $this->lines()->saveMany($this->lines);
+    }
+
+    public function complete(): void
+    {
+        $this->status = self::COMPLETED;
+        $this->save();
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::COMPLETED;
+    }
+
+    public function markAsFailed()
+    {
+        if ($this->isCompleted()) {
+            throw new RuntimeException('A completed order cannot be marked as failed.');
+        }
+
+        $this->status = self::PAYMENT_FAILED;
+        $this->save();
     }
 }

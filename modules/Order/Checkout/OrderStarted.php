@@ -6,7 +6,7 @@ use Modules\Order\Checkout\Contracts\UserDto;
 use Modules\Order\Checkout\Contracts\OrderDto;
 use Modules\Order\Checkout\Contracts\PendingPayment;
 
-readonly class OrderFullFilled
+readonly class OrderStarted
 {
     public function __construct(
         public OrderDto $order,

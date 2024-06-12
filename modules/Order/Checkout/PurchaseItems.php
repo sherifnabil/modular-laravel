@@ -11,10 +11,12 @@ use Modules\Order\Checkout\Contracts\UserDto;
 use Modules\Order\Checkout\Contracts\OrderDto;
 use Modules\Payment\Actions\CreatePaymentForOrder;
 use Modules\Order\Checkout\Contracts\PendingPayment;
+use Modules\Product\Warehouse\ProductStockManger;
 
 class PurchaseItems
 {
     public function __construct(
+        protected ProductStockManger $productStockManger,
         protected CreatePaymentForOrder $createPaymentForOrder,
         protected DatabaseManager $databaseManager,
         protected Dispatcher $events
@@ -26,7 +28,7 @@ class PurchaseItems
         $order = $this->databaseManager->transaction(function () use ($cartItemCollection, $pendingPayment, $user) {
             $order = Order::startForUser($user->id);
             $order->addLinesFromCartItems($cartItemCollection);
-            $order->fullfill();
+            $order->start();
 
             $payment = $this->createPaymentForOrder->handle(
                 $order->id,
@@ -39,7 +41,7 @@ class PurchaseItems
             return OrderDto::fromEloquentModel($order);
         });
 
-        $this->events->dispatch(new OrderFullFilled($order, $user));
+        $this->events->dispatch(new OrderStarted($order, $user, $pendingPayment));
 
         return $order;
     }

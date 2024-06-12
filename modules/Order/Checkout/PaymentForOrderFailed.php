@@ -10,12 +10,13 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Modules\Order\Checkout\Contracts\OrderDto;
 
-class OrderReceived extends Mailable
+class PaymentForOrderFailed extends Mailable
 {
     use Queueable, SerializesModels;
 
     public function __construct(
-        public OrderDto $order
+        public OrderDto $order,
+        public string $reason
     )
     { }
 
@@ -25,7 +26,7 @@ class OrderReceived extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order Received',
+            subject: 'Payment for Order has Failed',
         );
     }
 
@@ -35,7 +36,7 @@ class OrderReceived extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'order::emails.order_received',
+            view: 'order::emails.order_failed',
         );
     }
 
